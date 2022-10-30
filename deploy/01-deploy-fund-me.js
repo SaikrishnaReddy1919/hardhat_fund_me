@@ -1,7 +1,11 @@
 const { networkConfig, developmentChains } = require("../helper-hardhat-config")
 const { network } = require("hardhat")
 
-// @info: hardhat-deploy automatically passes hre(hardhat runtime env) while using "yarn hardhat deploy" command
+/**
+ * @info :
+ * ? hardhat-deploy automatically passes hre(hardhat runtime env) while using "yarn hardhat deploy" command
+ */
+
 module.exports = async (hre) => {
     const { getNamedAccounts, deployments } = hre
     const { deploy, log } = deployments
@@ -13,9 +17,14 @@ module.exports = async (hre) => {
 
     let ethUsdPriceFeedAddress
     if (developmentChains.includes(network.name)) {
-        // deployment on - local chains
-        //here contract for the ethUsdPrice is doesn't exist, so we deployed mock one using 00-delpoy-mocks.js. Now we need the address of newly deployed mock contract address. To get that :
-        //to get most recent deployment (address) using hardhat-deploy using name of the contract.
+
+        /**
+         * @info : deployment on - local chains
+         * ? here contract for the ethUsdPrice is doesn't exist, so we deployed mock one using 00-delpoy-mocks.js. Now we need the address of newly deployed mock contract address. To get that :
+         * ? to get most recent deployment (address) using hardhat-deploy using name of the contract.
+         * 
+        */
+        
         const ethUsdAggregator = await deployments.get("MockV3Aggregator")
         ethUsdPriceFeedAddress = ethUsdAggregator.address
     } else {
@@ -32,11 +41,12 @@ module.exports = async (hre) => {
     log("----------------------------")
 }
 
-/** 
- * @TAGS :
+/**
+ * @info :
  * ? command : "yarn hardhat deploy" will deploy all contracts in the order of number inside the deploy folder. So, deploy only specific contracts we use tags.
  * ? tags used to deploy only specific contracts.
  *
  * ? ex : if want to deploy only fundme contract then use : "yarn hardhat deploy --tags fundme"
  */
+
 module.exports.tags = ["all", "fundme"]

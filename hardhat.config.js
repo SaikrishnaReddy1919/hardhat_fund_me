@@ -1,11 +1,20 @@
+const {
+    TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
+} = require("hardhat/builtin-tasks/task-names")
+
 require("@nomicfoundation/hardhat-toolbox")
 require("@nomiclabs/hardhat-solhint")
 require("dotenv").config()
 require("hardhat-deploy")
 
-const GOERLI_RPC_URL = process.env.GOERLI_RPC_URL
-const GOERLI_PRIVATE_KEY = process.env.GOERLI_PRIVATE_KEY
+const GOERLI_RPC_URL =
+    process.env.GOERLI_RPC_URL ||
+    "https://eth-mainnet.alchemyapi.io/v2/your-api-key"
+const GOERLI_PRIVATE_KEY =
+    process.env.GOERLI_PRIVATE_KEY ||
+    "0x11ee3108a03081fe260ecdc106554d09d9d1209bcafd46942b10e02943effc4a"
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || ""
+const COINMARKETCAP_API_KEY = process.env.COINMARKETCAP_API_KEY || ""
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -29,18 +38,19 @@ module.exports = {
             url: GOERLI_RPC_URL,
             accounts: [GOERLI_PRIVATE_KEY],
             chainId: 5,
-            blockConfirmations: 6,
+            blockConfirmations: 6, //
         },
     },
     etherscan: {
         apiKey: ETHERSCAN_API_KEY,
     },
     gasReporter: {
-        enabled: true,
-        currency: "USD",
+        enabled: TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS, // if false -> dont generate report for gas
         outputFile: "gas-report.txt",
         noColors: true,
-        // coinmarketcap: COINMARKETCAP_API_KEY,
+        currency: "USD",
+        coinmarketcap: COINMARKETCAP_API_KEY, // -> to get prices of eth
+        // token: "MATIC", //-> if deployed on polygon chain
     },
     namedAccounts: {
         deployer: {

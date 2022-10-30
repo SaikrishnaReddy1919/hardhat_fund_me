@@ -1,5 +1,6 @@
 const { networkConfig, developmentChains } = require("../helper-hardhat-config")
 const { network } = require("hardhat")
+const { verify } = require("../utils/verify")
 
 /**
  * @info :
@@ -17,28 +18,34 @@ module.exports = async (hre) => {
 
     let ethUsdPriceFeedAddress
     if (developmentChains.includes(network.name)) {
-
         /**
          * @info : deployment on - local chains
          * ? here contract for the ethUsdPrice is doesn't exist, so we deployed mock one using 00-delpoy-mocks.js. Now we need the address of newly deployed mock contract address. To get that :
          * ? to get most recent deployment (address) using hardhat-deploy using name of the contract.
-         * 
-        */
-        
+         *
+         */
+
         const ethUsdAggregator = await deployments.get("MockV3Aggregator")
         ethUsdPriceFeedAddress = ethUsdAggregator.address
     } else {
         // deployment on testnet chains
-        ethUsdPriceFeedAddress - networkConfig[chainId]["ethUsdPriceFeed"]
+        ethUsdPriceFeedAddress = networkConfig[chainId]["ethUsdPriceFeed"]
     }
 
+    const args = [ethUsdPriceFeedAddress]
     const fundMeContract = await deploy("FundMe", {
         from: deployer,
-        args: [ethUsdPriceFeedAddress], //constructor args
+        args: args, //constructor args
         log: true,
+        waitConfirmations: network.config.blockConfirmations || 1,
     })
 
     log("----------------------------")
+
+    //contract verififcation only on testnets but not localchains.
+    if (!developmentChains.includes(network.name)) {
+        await verify(fundMeContract.address, args)
+    }
 }
 
 /**

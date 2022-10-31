@@ -23,7 +23,7 @@ contract FundMe {
 
     modifier onlyOwner() {
         // require(msg.sender == owner, "Only owner is allowed to call this.");
-        if(msg.sender == owner) revert FundMe__NotOwner();
+        if(msg.sender != owner) revert FundMe__NotOwner();
         _;
     }
 

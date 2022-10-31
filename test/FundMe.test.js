@@ -3,6 +3,8 @@ const { deployments, ethers, getNamedAccounts } = require("hardhat")
 
 describe("FundMe", async function () {
     let fundMe, deployer, mockV3Aggregator
+
+    const sendValue = ethers.utils.parseEther("1") //1eth
     beforeEach(async function () {
         // ? below line runs through the deploy folder and deploys all the contracts with the mentioned tags. wow!!! Thanks to hardhat.
 
@@ -35,6 +37,18 @@ describe("FundMe", async function () {
             await expect(fundMe.fund()).to.be.revertedWith(
                 "didn't send enough funds!." //error mentioned in contract's fund() functions
             )
+        })
+
+        it("updates the amount funded data structure", async function () {
+            await fundMe.fund({ value: sendValue })
+            const response = await fundMe.addressToAmountFounded(deployer)
+            assert.equal(response.toString(), sendValue.toString())
+        })
+
+        it("Adds the funder to funders array", async function () {
+            await fundMe.fund({ value: sendValue })
+            const funder = await fundMe.funders(0) //check the first index -> should be the deployer
+            assert.equal(funder, deployer)
         })
     })
 })

@@ -1,4 +1,4 @@
-const { assert } = require("chai")
+const { assert, expect } = require("chai")
 const { deployments, ethers, getNamedAccounts } = require("hardhat")
 
 describe("FundMe", async function () {
@@ -24,8 +24,17 @@ describe("FundMe", async function () {
     })
     describe("constructor", async function () {
         it("sets the aggregator addresses correclty", async function () {
-          const response = await fundMe.priceFeed()
-          assert.equal(response, mockV3Aggregator.address)
+            const response = await fundMe.priceFeed() // priceFeed : is the public variable in the contract. So by calling it we can fetch the address of the contract.
+            assert.equal(response, mockV3Aggregator.address)
+        })
+    })
+
+    describe("fund", async function () {
+        it("fails if we dont send enough eth", async function () {
+            // await fundMe.fund()
+            await expect(fundMe.fund()).to.be.revertedWith(
+                "didn't send enough funds!." //error mentioned in contract's fund() functions
+            )
         })
     })
 })

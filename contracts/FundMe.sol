@@ -1,27 +1,46 @@
-//get funds from users
-//withdraw funds
-//set a mini funding value in usd
-
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.8;
 
-import "./PriceConverter.sol";
-contract FundMe {
+import "./PriceConverter.sol"; 
 
+//best practice for error code is : contractName__errorName
+error FundMe__NotOwner();
+
+/** @title A contract for crowd funding
+ * @author Krishna
+ * @notice This contract is to demo a sample funding contract
+ * @dev this implements price feeds as our library.
+ */
+
+contract FundMe {
     using PriceConverter for uint256;
 
     uint256 public constant MINIMUM_USD = 50 * 1e18; // usd with 18 decimals
     address[] public funders;
     mapping(address => uint256) public addressToAmountFounded;
     address public  /* immutable */ owner;
-
     AggregatorV3Interface public priceFeed;
+
+    modifier onlyOwner() {
+        // require(msg.sender == owner, "Only owner is allowed to call this.");
+        if(msg.sender == owner) revert FundMe__NotOwner();
+        _;
+    }
 
     // priceFeed : contract address to get the price will be passed dynamically while deploying based on the chain that we deploy.
     constructor(address priceFeedAddress) {
         owner = msg.sender;
         priceFeed = AggregatorV3Interface(priceFeedAddress);
+    }
+
+    //what happens if someone sends eth to this contract without calling fund function?
+    //ex: direclty sending eth to the contract address - then fund() will not be executed so
+    // solidity has some special functions like recieve and fallback - these are executed when funds are sent to the contract directly.
+    receive() external payable{
+        fund();
+    }
+    fallback() external payable {
+        fund();
     }
 
     function fund() public payable {
@@ -55,21 +74,5 @@ contract FundMe {
          //call :
          (bool callSuccess,) = payable(msg.sender).call{value : address(this).balance}("");
          require(callSuccess, "Call failed.");
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner is allowed to call this.");
-        _;
-    }
-
-    //what happens if someone sends eth to this contract without calling fund function?
-    //ex: direclty sending eth to the contract address - then fund() will not be executed so
-    // solidity has some special functions like recieve and fallback - these are executed when funds are sent to the contract directly.
-
-    receive() external payable{
-        fund();
-    }
-    fallback() external payable {
-        fund();
     }
 }

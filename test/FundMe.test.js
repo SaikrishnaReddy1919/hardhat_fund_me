@@ -80,6 +80,7 @@ describe("FundMe", async function () {
             )
 
             //assert
+            // we need gasCost here. Caz in the above fund() function some balance from the deployer account is used for gas. We need to fetch how much that is and use it below to get exaclty the correct balance for the deployer
             assert.equal(endingFundMeBalance, 0)
             assert.equal(
                 startingFundMeBalance.add(startingDeployerBalance).toString(),

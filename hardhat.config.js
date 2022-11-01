@@ -1,11 +1,8 @@
-const {
-    TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS,
-} = require("hardhat/builtin-tasks/task-names")
-
 require("@nomicfoundation/hardhat-toolbox")
 require("@nomiclabs/hardhat-solhint")
 require("dotenv").config()
 require("hardhat-deploy")
+require("hardhat-gas-reporter")
 
 const GOERLI_RPC_URL =
     process.env.GOERLI_RPC_URL ||
@@ -45,12 +42,12 @@ module.exports = {
         apiKey: ETHERSCAN_API_KEY,
     },
     gasReporter: {
-        enabled: TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOBS_FAILURE_REASONS, // if false -> dont generate report for gas
+        enabled: true, // if false -> dont generate report for gas
         outputFile: "gas-report.txt",
         noColors: true,
-        currency: "USD",
+        currency: "INR",
         coinmarketcap: COINMARKETCAP_API_KEY, // -> to get prices of eth
-        // token: "MATIC", //-> if deployed on polygon chain
+        token: "MATIC", //-> if deployed on polygon chain
     },
     namedAccounts: {
         deployer: {

@@ -22,8 +22,8 @@ contract FundMe {
     AggregatorV3Interface public priceFeed;
 
     modifier onlyOwner() {
-        // require(msg.sender == owner, "Only owner is allowed to call this.");
-        if(msg.sender != owner) revert FundMe__NotOwner();
+        require(msg.sender == owner, "Only owner is allowed to call this.");
+        // if(msg.sender != owner) revert FundMe__NotOwner();
         _;
     }
 

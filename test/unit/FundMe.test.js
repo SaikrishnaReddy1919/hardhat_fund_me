@@ -138,7 +138,9 @@ describe("FundMe", async function () {
             const accounts = await ethers.getSigners()
             const attacker = accounts[1]
             const attackerConnectedContract = await fundMe.connect(attacker)
-            await expect(attackerConnectedContract.withdraw()).to.be.reverted
+            await expect(
+                attackerConnectedContract.withdraw()
+            ).to.be.revertedWith("Only owner is allowed to call this.")
         })
     })
 })

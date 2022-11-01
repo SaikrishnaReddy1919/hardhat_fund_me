@@ -26,7 +26,7 @@ describe("FundMe", async function () {
     })
     describe("constructor", async function () {
         it("sets the aggregator addresses correclty", async function () {
-            const response = await fundMe.priceFeed() // priceFeed : is the public variable in the contract. So by calling it we can fetch the address of the contract.
+            const response = await fundMe.s_priceFeed() // priceFeed : is the public variable in the contract. So by calling it we can fetch the address of the contract.
             assert.equal(response, mockV3Aggregator.address)
         })
     })
@@ -41,13 +41,13 @@ describe("FundMe", async function () {
 
         it("updates the amount funded data structure", async function () {
             await fundMe.fund({ value: sendValue })
-            const response = await fundMe.addressToAmountFounded(deployer)
+            const response = await fundMe.s_addressToAmountFounded(deployer)
             assert.equal(response.toString(), sendValue.toString())
         })
 
-        it("Adds the funder to funders array", async function () {
+        it("Adds the funder to s_funders array", async function () {
             await fundMe.fund({ value: sendValue })
-            const funder = await fundMe.funders(0) //check the first index -> should be the deployer
+            const funder = await fundMe.s_funders(0) //check the first index -> should be the deployer
             assert.equal(funder, deployer)
         })
     })
@@ -88,7 +88,39 @@ describe("FundMe", async function () {
             )
         })
 
-        it("allows us to withdraw with multiple funders", async function () {
+        it("withdraw ETH from a single founder : cheaperWithdraw", async function () {
+            // arrange
+            const startingFundMeBalance = await fundMe.provider.getBalance(
+                fundMe.address
+            )
+            const startingDeployerBalance = await fundMe.provider.getBalance(
+                deployer
+            )
+
+            //act
+            const txnResponse = await fundMe.cheaperWithdraw()
+            const txnReceipt = await txnResponse.wait(1) //debug txnREceipt to check which other fields are available on txnReceipt
+            const { gasUsed, effectiveGasPrice } = txnReceipt
+
+            const gasCost = gasUsed.mul(effectiveGasPrice)
+
+            const endingFundMeBalance = await fundMe.provider.getBalance(
+                fundMe.address
+            )
+            const endingDeployerBalance = await fundMe.provider.getBalance(
+                deployer
+            )
+
+            //assert
+            // we need gasCost here. Caz in the above fund() function some balance from the deployer account is used for gas. We need to fetch how much that is and use it below to get exaclty the correct balance for the deployer
+            assert.equal(endingFundMeBalance, 0)
+            assert.equal(
+                startingFundMeBalance.add(startingDeployerBalance).toString(),
+                endingDeployerBalance.add(gasCost).toString()
+            )
+        })
+
+        it("allows us to withdraw with multiple s_funders", async function () {
             //arrange
             const accounts = await ethers.getSigners()
             for (let i = 1; i < 6; i++) {
@@ -125,10 +157,55 @@ describe("FundMe", async function () {
                 startingFundMeBalance.add(startingDeployerBalance).toString(),
                 endingDeployerBalance.add(gasCost).toString()
             )
-            await expect(fundMe.funders(0)).to.be.reverted
+            await expect(fundMe.s_funders(0)).to.be.reverted
             for (let i = 1; i < 6; i++) {
                 assert.equal(
-                    await fundMe.addressToAmountFounded(accounts[i].address),
+                    await fundMe.s_addressToAmountFounded(accounts[i].address),
+                    0
+                )
+            }
+        })
+
+        it("with cheaperWithdraw : allows us to withdraw with multiple funders", async function () {
+            //arrange
+            const accounts = await ethers.getSigners()
+            for (let i = 1; i < 6; i++) {
+                const fundMeConnectedContract = await fundMe.connect(
+                    accounts[i]
+                )
+                await fundMeConnectedContract.fund({ value: sendValue })
+            }
+            const startingFundMeBalance = await fundMe.provider.getBalance(
+                fundMe.address
+            )
+            const startingDeployerBalance = await fundMe.provider.getBalance(
+                deployer
+            )
+
+            //act
+            const txnResponse = await fundMe.cheaperWithdraw()
+            const txnReceipt = await txnResponse.wait(1) //debug txnREceipt to check which other fields are available on txnReceipt
+            const { gasUsed, effectiveGasPrice } = txnReceipt
+
+            const gasCost = gasUsed.mul(effectiveGasPrice)
+
+            const endingFundMeBalance = await fundMe.provider.getBalance(
+                fundMe.address
+            )
+            const endingDeployerBalance = await fundMe.provider.getBalance(
+                deployer
+            )
+
+            //assert
+            assert.equal(endingFundMeBalance, 0)
+            assert.equal(
+                startingFundMeBalance.add(startingDeployerBalance).toString(),
+                endingDeployerBalance.add(gasCost).toString()
+            )
+            await expect(fundMe.s_funders(0)).to.be.reverted
+            for (let i = 1; i < 6; i++) {
+                assert.equal(
+                    await fundMe.s_addressToAmountFounded(accounts[i].address),
                     0
                 )
             }

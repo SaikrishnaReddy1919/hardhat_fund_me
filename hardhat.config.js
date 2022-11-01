@@ -47,7 +47,7 @@ module.exports = {
         noColors: true,
         currency: "INR",
         coinmarketcap: COINMARKETCAP_API_KEY, // -> to get prices of eth
-        token: "MATIC", //-> if deployed on polygon chain
+        token: "ETH", //-> if deployed on polygon chain
     },
     namedAccounts: {
         deployer: {

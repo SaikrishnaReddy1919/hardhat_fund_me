@@ -43,11 +43,12 @@ module.exports = async (hre) => {
     log("----------------------------")
 
     //contract verififcation only on testnets but not localchains.
-    if (!developmentChains.includes(network.name) && process.env.ETHERSCAN_API_KEY) {
+    if (
+        !developmentChains.includes(network.name) &&
+        process.env.ETHERSCAN_API_KEY
+    ) {
         log("verifying contract on etherscan...")
         await verify(fundMeContract.address, args)
-    } else {
-        console.log("contract verification failed")
     }
 }
 
